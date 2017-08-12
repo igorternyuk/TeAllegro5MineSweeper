@@ -2,54 +2,48 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include "model.h"
 #include "controller.h"
 
 View::View(Model *model, Controller *controller):
-    _pModel(model), _pController(controller)
+    pModel_(model), pController_(controller)
 {
-    if(initAllegro5())
+    initAllegro5();
+    pMainWindow_ = al_create_display(WINDOW_WIDTH, WINDOW_HEIGHT);
+    if(!pMainWindow_)
     {
-        _pMainWindow = al_create_display(WINDOW_WIDTH, WINDOW_HEIGHT);
-        if(!_pMainWindow)
-        {
-            al_show_native_message_box(0, "Error", 0, "Could not create Allegro Window", 0, 0);
-        }
-        al_set_window_position(_pMainWindow, WINDOW_X, WINDOW_Y);
-        al_set_window_title(_pMainWindow, TITLE_OF_PROGRAM.c_str());
-        //Fonts
-        _pFontSmall = al_load_ttf_font("Resources/Fonts/orbitron-light.ttf", FONT_SMALL_SIZE, 0);
-        _pFontMiddle = al_load_ttf_font("Resources/Fonts/orbitron-light.ttf", FONT_MIDDLE_SIZE, 0);
-        _pFontLarge = al_load_ttf_font("Resources/Fonts/orbitron-light.ttf", FONT_LARGE_SIZE, 0);
-        //Sounds
-        al_reserve_samples(3);
-        _pSoundVictory =  al_load_sample("Resources/Sounds/Victory.wav");
-        _pSoundDefeat =  al_load_sample("Resources/Sounds/Defeat.wav");
-        _pSoundExplosion = al_load_sample("Resources/Sounds/Explosion.wav");
-        //Timers
-        _pTimer = al_create_timer(1.0f / FPS);
+        al_show_native_message_box(0, "Error", 0, "Could not create Allegro Window", 0, 0);
     }
+    al_set_window_position(pMainWindow_, WINDOW_X, WINDOW_Y);
+    al_set_window_title(pMainWindow_, TITLE_OF_PROGRAM.c_str());
+    //Fonts
+    initFonts();
+    //Sounds
+    initSounds();
+    //Timers
+    pTimer_ = al_create_timer(1.0f / FPS);
 }
 
 View::~View()
 {
-    al_destroy_font(_pFontSmall);
-    al_destroy_font(_pFontMiddle);
-    al_destroy_font(_pFontLarge);
-    al_destroy_sample(_pSoundVictory);
-    al_destroy_sample(_pSoundDefeat);
-    al_destroy_sample(_pSoundExplosion);
-    al_destroy_timer(_pTimer);
-    al_destroy_display(_pMainWindow);
+    al_destroy_font(pFontSmall_);
+    al_destroy_font(pFontMiddle_);
+    al_destroy_font(pFontLarge_);
+    al_destroy_sample(pSoundVictory_);
+    al_destroy_sample(pSoundDefeat_);
+    al_destroy_sample(pSoundExplosion_);
+    al_destroy_timer(pTimer_);
+    al_destroy_display(pMainWindow_);
 }
 
 void View::run()
 {
     ALLEGRO_EVENT_QUEUE *event_queue = al_create_event_queue();
-    al_register_event_source(event_queue, al_get_display_event_source(_pMainWindow));
+    al_register_event_source(event_queue, al_get_display_event_source(pMainWindow_));
     al_register_event_source(event_queue, al_get_keyboard_event_source());
     al_register_event_source(event_queue, al_get_mouse_event_source());
-    al_register_event_source(event_queue, al_get_timer_event_source(_pTimer));
+    al_register_event_source(event_queue, al_get_timer_event_source(pTimer_));
     //al_start_timer(_pTimer);
     //Main loop of the game
     while(!_done)
@@ -66,11 +60,11 @@ void View::run()
             {
                 al_clear_to_color(al_map_rgb(0,0,0));
                 //All drawing stuff
-                for(int y{0}; y < _pModel->fieldHeight(); ++y)
+                for(int y{0}; y < pModel_->fieldHeight(); ++y)
                 {
-                    for(int x{0}; x < _pModel->fieldWidth(); ++x)
+                    for(int x{0}; x < pModel_->fieldWidth(); ++x)
                     {
-                        switch(_pModel->getCellState(x, y))
+                        switch(pModel_->getCellState(x, y))
                         {
                             case Model::CellState::CLOSED:
                                 drawClosedCell(x, y);
@@ -82,15 +76,15 @@ void View::run()
                                 drawQuestionedCell(x, y);
                                 break;
                             case Model::CellState::OPENED:
-                                if(_pModel->isCellMined(x,y))
+                                if(pModel_->isCellMined(x,y))
                                 {
-                                    bool isExploded = x == _pModel->getExplosionX() &&
-                                            y == _pModel->getExplosionY();
+                                    bool isExploded = x == pModel_->getExplosionX() &&
+                                            y == pModel_->getExplosionY();
                                     drawMine(x,y,isExploded);
                                 }
                                 else
                                 {
-                                    drawOpenedCell(x, y, _pModel->countMinesAround(x, y));
+                                    drawOpenedCell(x, y, pModel_->countMinesAround(x, y));
                                 }
                             break;
                         }
@@ -118,8 +112,8 @@ void View::run()
                 case ALLEGRO_KEY_M:
                     //Show menu
                     _isMenuActive = true;
-                    al_stop_timer(_pTimer);
-                    al_resize_display(_pMainWindow, WINDOW_WIDTH, WINDOW_HEIGHT);
+                    al_stop_timer(pTimer_);
+                    al_resize_display(pMainWindow_, WINDOW_WIDTH, WINDOW_HEIGHT);
                     _currentMenuItem = 0;
                     break;
                 case ALLEGRO_KEY_UP:
@@ -179,34 +173,34 @@ void View::run()
             int cursorY = events.mouse.y;
             if(!_isMenuActive)
             {
-                if(_pModel->gameState() == Model::GameState::PLAY)
+                if(pModel_->gameState() == Model::GameState::PLAY)
                 {
                     if(events.mouse.button & 1)
                     {
-                        _pController->leftClick(cursorX / CELL_WIDTH, cursorY / CELL_HEIGHT);
-                        if(_pModel->gameState() == Model::GameState::VICTORY)
+                        pController_->leftClick(cursorX / CELL_WIDTH, cursorY / CELL_HEIGHT);
+                        if(pModel_->gameState() == Model::GameState::VICTORY)
                         {
-                            al_stop_timer(_pTimer);
-                            if(_pSoundVictory != NULL)
-                                al_play_sample(_pSoundVictory, 1.0f, 0.0f, 1.0, ALLEGRO_PLAYMODE_ONCE, 0);
+                            al_stop_timer(pTimer_);
+                            if(pSoundVictory_ != NULL)
+                                al_play_sample(pSoundVictory_, 1.0f, 0.0f, 1.0, ALLEGRO_PLAYMODE_ONCE, 0);
                         }
-                        else if(_pModel->gameState() == Model::GameState::DEFEAT)
+                        else if(pModel_->gameState() == Model::GameState::DEFEAT)
                         {
-                            al_stop_timer(_pTimer);
-                            if(_pSoundExplosion != NULL)
-                                al_play_sample(_pSoundExplosion, 1.0f, 0.0f, 1.0, ALLEGRO_PLAYMODE_ONCE, 0);
-                            if(_pSoundDefeat != NULL)
-                                al_play_sample(_pSoundDefeat, 1.0f, 0.0f, 1.0, ALLEGRO_PLAYMODE_ONCE, 0);
+                            al_stop_timer(pTimer_);
+                            if(pSoundExplosion_ != NULL)
+                                al_play_sample(pSoundExplosion_, 1.0f, 0.0f, 1.0, ALLEGRO_PLAYMODE_ONCE, 0);
+                            if(pSoundDefeat_ != NULL)
+                                al_play_sample(pSoundDefeat_, 1.0f, 0.0f, 1.0, ALLEGRO_PLAYMODE_ONCE, 0);
                         }
                     }
                     else if(events.mouse.button & 2)
                     {
-                        _pController->rightClick(cursorX / CELL_WIDTH, cursorY / CELL_HEIGHT);
-                        if(_pModel->gameState() == Model::GameState::VICTORY)
+                        pController_->rightClick(cursorX / CELL_WIDTH, cursorY / CELL_HEIGHT);
+                        if(pModel_->gameState() == Model::GameState::VICTORY)
                         {
-                            al_stop_timer(_pTimer);
-                            if(_pSoundVictory != NULL)
-                                al_play_sample(_pSoundVictory, 1.0f, 0.0f, 1.0, ALLEGRO_PLAYMODE_ONCE, 0);
+                            al_stop_timer(pTimer_);
+                            if(pSoundVictory_ != NULL)
+                                al_play_sample(pSoundVictory_, 1.0f, 0.0f, 1.0, ALLEGRO_PLAYMODE_ONCE, 0);
                         }
                     }
                 }
@@ -229,36 +223,56 @@ void View::updateView()
     _draw = true;
 }
 
-bool View::initAllegro5()
+void View::initAllegro5()
 {
     if(!al_init())
     {
         al_show_native_message_box(0, "Error", 0, "Could not initialize Allegro 5", 0, 0);
-        return false;
+        throw std::runtime_error("Could not initialize allegro5");
     }
     al_init_font_addon();
-    al_init_ttf_addon();
-    al_init_primitives_addon();
-    al_install_audio();
-    al_init_acodec_addon();
-    al_install_keyboard();
-    al_install_mouse();
-    return true;
+    if(!al_init_ttf_addon())
+        throw std::runtime_error("Could not initialize font addon");
+    if(!al_init_primitives_addon())
+        throw std::runtime_error("Could not initialize primitives addon");
+    if(!al_install_audio())
+        throw std::runtime_error("Could not install audio");
+    if(!al_init_acodec_addon())
+        throw std::runtime_error("Could not initialize scodec addon");
+    if(!al_install_keyboard())
+        throw std::runtime_error("Could not install keyboard");
+    if(!al_install_mouse())
+        throw std::runtime_error("Could not install mouse");
+}
+
+void View::initFonts()
+{
+    pFontSmall_ = al_load_ttf_font("Resources/Fonts/orbitron-light.ttf", FONT_SMALL_SIZE, 0);
+    pFontMiddle_ = al_load_ttf_font("Resources/Fonts/orbitron-light.ttf", FONT_MIDDLE_SIZE, 0);
+    pFontLarge_ = al_load_ttf_font("Resources/Fonts/orbitron-light.ttf", FONT_LARGE_SIZE, 0);
+}
+
+void View::initSounds()
+{
+    al_reserve_samples(3);
+    pSoundVictory_ =  al_load_sample("Resources/Sounds/Victory.wav");
+    pSoundDefeat_ =  al_load_sample("Resources/Sounds/Defeat.wav");
+    pSoundExplosion_ = al_load_sample("Resources/Sounds/Explosion.wav");
 }
 
 void View::startGameWithSelectedLevel()
 {
-    al_stop_timer(_pTimer);
-    al_set_timer_count(_pTimer, 0);
+    al_stop_timer(pTimer_);
+    al_set_timer_count(pTimer_, 0);
     switch (_currentMenuItem) {
     case 0:
-        _pController->changeLevel(1);
+        pController_->changeLevel(1);
         break;
     case 1:
-        _pController->changeLevel(2);
+        pController_->changeLevel(2);
         break;
     case 2:
-        _pController->changeLevel(3);
+        pController_->changeLevel(3);
         break;
     case 3:
         _done = true;
@@ -268,11 +282,11 @@ void View::startGameWithSelectedLevel()
     }
     //std::cout << "newWidth = " << _pModel->fieldWidth() << std::endl;
     //std::cout << "newHeight = " << _pModel->fieldHeight() << std::endl;
-    al_resize_display(_pMainWindow, _pModel->fieldWidth() * CELL_WIDTH,
-                      _pModel->fieldHeight() * CELL_HEIGHT + GAP_FOR_GAME_INFO);
+    al_resize_display(pMainWindow_, pModel_->fieldWidth() * CELL_WIDTH,
+                      pModel_->fieldHeight() * CELL_HEIGHT + GAP_FOR_GAME_INFO);
     _isMenuActive = false;
 
-    al_start_timer(_pTimer);
+    al_start_timer(pTimer_);
     _draw = true;
 }
 
@@ -335,7 +349,7 @@ void View::drawOpenedCell(int x, int y, int numMinesAround) const
         }
         int tx = x * CELL_WIDTH + 7;
         int ty = y * CELL_HEIGHT + 7;
-        al_draw_text(_pFontMiddle, color, numMinesAround == 1 ? tx + 4: tx, ty, 0,
+        al_draw_text(pFontMiddle_, color, numMinesAround == 1 ? tx + 4: tx, ty, 0,
                      std::to_string(numMinesAround).c_str());
     }
 }
@@ -370,7 +384,7 @@ void View::drawFlaggedCell(int x, int y) const
 void View::drawQuestionedCell(int x, int y) const
 {
     drawClosedCell(x, y);
-    al_draw_text(_pFontMiddle, al_map_rgb(255,255,0), x * CELL_WIDTH + 7, y * CELL_HEIGHT + 7, 0, "?");
+    al_draw_text(pFontMiddle_, al_map_rgb(255,255,0), x * CELL_WIDTH + 7, y * CELL_HEIGHT + 7, 0, "?");
 }
 
 void View::drawMine(int x, int y, bool isExploded) const
@@ -394,12 +408,12 @@ void View::drawMine(int x, int y, bool isExploded) const
 
 void View::drawGameStatus() const
 {
-    if(_pModel->level() == 1)
+    if(pModel_->level() == 1)
         drawFlag(0, 9);
     else
         drawFlag(0, 16);
     std::string status;
-    switch (_pModel->gameState()) {
+    switch (pModel_->gameState()) {
     case Model::GameState::PLAY:
         status = "PLAY";
         break;
@@ -414,34 +428,34 @@ void View::drawGameStatus() const
         break;
     }
     std::stringstream ss;
-    ss << _pModel->numFlags() << "/" << _pModel->numMines() << " STATUS:" << status;
-    ALLEGRO_FONT *pFont = (_pModel->level() == 1) ? _pFontSmall : _pFontMiddle;
-    al_draw_text(pFont, al_map_rgb(0,255,0), 35, al_get_display_height(_pMainWindow) - 45,
+    ss << pModel_->numFlags() << "/" << pModel_->numMines() << " STATUS:" << status;
+    ALLEGRO_FONT *pFont = (pModel_->level() == 1) ? pFontSmall_ : pFontMiddle_;
+    al_draw_text(pFont, al_map_rgb(0,255,0), 35, al_get_display_height(pMainWindow_) - 45,
                  0, ss.str().c_str());
 }
 
 void View::drawTime() const
 {
-    auto count_ms = al_get_timer_count(_pTimer) * 1000 / FPS;
+    auto count_ms = al_get_timer_count(pTimer_) * 1000 / FPS;
     int hour = count_ms / 3600000;
     int min = (count_ms % 3600000) / 60000;
     int sec = ((count_ms % 3600000) % 60000) / 1000;
     int ms =  ((count_ms % 3600000) % 60000) % 1000;
     std::stringstream ss;
     ss << "Time: " << hour << ":" << min << ":" << sec << ":" << ms;
-    al_draw_text(_pFontSmall, al_map_rgb(255,0,0), 35,
-                 al_get_display_height(_pMainWindow) - 25,
+    al_draw_text(pFontSmall_, al_map_rgb(255,0,0), 35,
+                 al_get_display_height(pMainWindow_) - 25,
                  0, ss.str().c_str());
 }
 
 void View::drawMenu() const
 {
-    al_draw_text(_pFontLarge, al_map_rgb(0,127,234), WINDOW_WIDTH / 8, WINDOW_HEIGHT / 8, 0, "MINESWEEPER");
-    al_draw_text(_pFontLarge, al_map_rgb(255,0,0), WINDOW_WIDTH / 3, WINDOW_HEIGHT / 4, 0, "MENU");
+    al_draw_text(pFontLarge_, al_map_rgb(0,127,234), WINDOW_WIDTH / 8, WINDOW_HEIGHT / 8, 0, "MINESWEEPER");
+    al_draw_text(pFontLarge_, al_map_rgb(255,0,0), WINDOW_WIDTH / 3, WINDOW_HEIGHT / 4, 0, "MENU");
     for(unsigned short int i{0}; i < _menuItems.size(); ++i)
     {
         ALLEGRO_COLOR color = i == _currentMenuItem ? al_map_rgb(255,255,0) : al_map_rgb(0, 148, 255);
-        al_draw_text(_pFontMiddle, color, WINDOW_WIDTH / 5,
+        al_draw_text(pFontMiddle_, color, WINDOW_WIDTH / 5,
                      WINDOW_HEIGHT / 3 + (i + 1) * 40, 0, _menuItems[i].c_str());
     }
 }

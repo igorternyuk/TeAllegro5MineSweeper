@@ -2,25 +2,25 @@
 #include "model.h"
 
 Controller::Controller(Model *model):
-    _pModel(model)
+    pModel_(model)
 {}
 
 void Controller::leftClick(int x, int y)
 {
-    _pModel->openCell(x,y);
+    pModel_->openCell(x,y);
 }
 
 void Controller::rightClick(int x, int y)
 {
-    _pModel->markCell(x, y);
+    pModel_->markCell(x, y);
 }
 
 void Controller::newGame()
 {
-    _pModel->startNewGame();
+    pModel_->startNewGame();
 }
 
 void Controller::changeLevel(int level)
 {
-    _pModel->changeLevel(level);
+    pModel_->changeLevel(level);
 }

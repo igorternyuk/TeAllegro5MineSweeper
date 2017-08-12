@@ -12,7 +12,7 @@ public:
     void newGame();
     void changeLevel(int level);
 private:
-    Model *_pModel;
+    Model *pModel_;
 };
 
 #endif // CONTROLLER_H

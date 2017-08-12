@@ -12,16 +12,16 @@ public:
     enum class CellState{CLOSED, OPENED, FLAGGED, QUESTIONED};
     enum class GameState{PLAY, VICTORY, DEFEAT};
     explicit Model(int level = 2);
-    inline int level() const {return _level; }
-    inline int fieldWidth() const { return _width; }
-    inline int fieldHeight() const { return _height; }
-    inline int numMines() const { return _numMines; }
-    inline int numFlags() const { return _numFlags; }
-    inline bool isCellMined(int x, int y) const { return _field[y][x].isMined; }
-    inline CellState getCellState(int x, int y) const { return _field[y][x].state; }
-    inline int getExplosionX() const { return _explosionX; }
-    inline int getExplosionY() const { return _explosionY; }
-    inline GameState gameState() const { return _gameState; }
+    inline int level() const {return level_; }
+    inline int fieldWidth() const { return width_; }
+    inline int fieldHeight() const { return height_; }
+    inline int numMines() const { return numMines_; }
+    inline int numFlags() const { return numFlags_; }
+    inline bool isCellMined(int x, int y) const { return field_[y][x].isMined; }
+    inline CellState getCellState(int x, int y) const { return field_[y][x].state; }
+    inline int getExplosionX() const { return explosionX_; }
+    inline int getExplosionY() const { return explosionY_; }
+    inline GameState gameState() const { return gameState_; }
     void openCell(int x, int y);
     void markCell(int x, int y);
     void startNewGame();
@@ -34,7 +34,7 @@ private:
         FIELD_WIDTH_MAX = 30,
         FIELD_HEIGHT_MAX = 16
     };
-    const int _levelsData[3][3] = {
+    const int levelsData_[3][3] = {
         {9, 9, 10},       //Field size x, field size y and number of mines
         {16, 16, 40},
         {30, 16, 99}
@@ -44,13 +44,13 @@ private:
         bool isMined;
         CellState state;
     };
-    int _level, _width, _height;
-    int _numMines{0}, _numFlags {0};
-    bool _isFirstMove {true};
-    int _explosionX{-1}, _explosionY{-1};
-    Cell _field[FIELD_HEIGHT_MAX][FIELD_WIDTH_MAX];
-    GameState _gameState {GameState::PLAY};
-    std::list<ModelListener*> _listeners;
+    int level_, width_, height_;
+    int numMines_{0}, numFlags_{0};
+    bool isFirstMove_ {true};
+    int explosionX_{-1}, explosionY_{-1};
+    Cell field_[FIELD_HEIGHT_MAX][FIELD_WIDTH_MAX];
+    GameState gameState_ {GameState::PLAY};
+    std::list<ModelListener*> listeners_;
     void createField();
     void mineField(int numMines);
     bool isCellCoordsInRange(int x, int y);

@@ -11,7 +11,7 @@
 #include <string>
 #include "modellistener.h"
 
-////Last edit: 11.08.2017
+////Last edit: 12.08.2017
 /// @author Igor Ternyuk
 
 class Model;
@@ -41,7 +41,7 @@ private:
     };
     bool _isMenuActive{true};
     short int _currentMenuItem {0};
-    std::vector<std::string> _menuItems = {
+    const std::vector<std::string> _menuItems = {
         "1.Beginner (9 X 9) - 10 mines",
         "2.Intermediate (16 X 16) - 40 mines",
         "3.Advanced (16 X 30) - 100 mines",
@@ -49,17 +49,19 @@ private:
     };
     bool _draw{true};
     bool _done{false};
-    Model *_pModel;
-    Controller *_pController;
-    ALLEGRO_DISPLAY *_pMainWindow;
-    ALLEGRO_FONT *_pFontSmall, *_pFontMiddle, *_pFontLarge;
-    ALLEGRO_SAMPLE *_pSoundVictory;
+    Model *pModel_;
+    Controller *pController_;
+    ALLEGRO_DISPLAY *pMainWindow_;
+    ALLEGRO_FONT *pFontSmall_, *pFontMiddle_, *pFontLarge_;
+    ALLEGRO_SAMPLE *pSoundVictory_;
     //ALLEGRO_SAMPLE_INSTANCE *_pSampleInstanceVictory;
-    ALLEGRO_SAMPLE *_pSoundDefeat;
+    ALLEGRO_SAMPLE *pSoundDefeat_;
     //ALLEGRO_SAMPLE_INSTANCE *_pSampleInstanceDefeat;
-    ALLEGRO_SAMPLE *_pSoundExplosion;
-    ALLEGRO_TIMER *_pTimer;
-    bool initAllegro5();
+    ALLEGRO_SAMPLE *pSoundExplosion_;
+    ALLEGRO_TIMER *pTimer_;
+    void initAllegro5();
+    void initFonts();
+    void initSounds();
     void startGameWithSelectedLevel();
     void drawClosedCell(int x, int y) const;
     void drawOutline(int x, int y) const;
