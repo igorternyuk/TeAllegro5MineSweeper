@@ -34,7 +34,7 @@ private:
         FIELD_WIDTH_MAX = 30,
         FIELD_HEIGHT_MAX = 16
     };
-    const int levelsData_[3][3] = {
+    const int levelsData_[3][3] {
         {9, 9, 10},       //Field size x, field size y and number of mines
         {16, 16, 40},
         {30, 16, 99}

@@ -1,5 +1,6 @@
 #ifndef VIEW_H
 #define VIEW_H
+
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_native_dialog.h>
 #include <allegro5/allegro_ttf.h>
@@ -7,11 +8,13 @@
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_acodec.h>
-#include <vector>
-#include <string>
 #include "modellistener.h"
 
-////Last edit: 12.08.2017
+#include <vector>
+#include <string>
+
+
+////Last edit: 28.08.2017
 /// @author Igor Ternyuk
 
 class Model;

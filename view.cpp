@@ -1,10 +1,14 @@
 #include "view.h"
+
+#include "model.h"
+#include "controller.h"
+
 #include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include "model.h"
-#include "controller.h"
+#include <cmath>
+
 
 View::View(Model *model, Controller *controller):
     pModel_(model), pController_(controller)

@@ -1,5 +1,5 @@
 TEMPLATE = app
-CONFIG -= console c++14
+CONFIG -= c++1z
 CONFIG -= app_bundle
 CONFIG -= qt
 DEFINES += DEBUG
@@ -13,8 +13,6 @@ SOURCES += main.cpp \
     model.cpp \
     controller.cpp \
     view.cpp
-QMAKE_CXXFLAGS += -std=c++14
-#QMAKE_CXXFLAGS += -static
 
 HEADERS += \
     model.h \
